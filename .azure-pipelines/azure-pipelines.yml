@@ -1,4 +1,3 @@
-# azure-pipelines.yml
 trigger:
   - main
 
@@ -6,7 +5,6 @@ variables:
   azureSubscription: 'Azure-Connection'
   appName: 'kv-python-webapp-demo'
   resourceGroup: 'rg-kv-python-canada'
-  packagePath: '$(System.DefaultWorkingDirectory)'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -31,15 +29,9 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/kvapp.zip'
     replaceExistingArchive: true
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/kvapp.zip'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-
 - task: AzureWebApp@1
   inputs:
     azureSubscription: '$(azureSubscription)'
     appType: 'webAppLinux'
     appName: '$(appName)'
-    package: '$(Pipeline.Workspace)/drop/kvapp.zip'
+    package: '$(Build.ArtifactStagingDirectory)/kvapp.zip'
