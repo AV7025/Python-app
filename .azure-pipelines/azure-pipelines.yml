@@ -1,0 +1,45 @@
+# azure-pipelines.yml
+trigger:
+  - main
+
+variables:
+  azureSubscription: 'Azure-Connection'
+  appName: 'kv-python-webapp-demo'
+  resourceGroup: 'rg-kv-python-canada'
+  packagePath: '$(System.DefaultWorkingDirectory)'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+    addToPath: true
+
+- script: |
+    python -m venv antenv
+    source antenv/bin/activate
+    pip install -r requirements.txt
+  displayName: 'Install Python dependencies'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/kvapp.zip'
+    replaceExistingArchive: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/kvapp.zip'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appType: 'webAppLinux'
+    appName: '$(appName)'
+    package: '$(Pipeline.Workspace)/drop/kvapp.zip'
